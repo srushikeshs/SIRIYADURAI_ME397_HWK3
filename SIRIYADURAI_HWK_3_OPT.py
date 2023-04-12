@@ -6,30 +6,30 @@ from pyomo.opt import SolverFactory
 
 ## constants and assumptions
 # capital costs for solar, and energy storage systems
-solar_cap_cost = 800000000
-wind_cap_cost = 1200000000      
-ESS_p_cap_cost = 200000000       
-ESS_e_cap_cost = 150000000       
+solar_cap_cost  = 800000000
+wind_cap_cost   = 1200000000      
+ESS_p_cap_cost  = 200000000       
+ESS_e_cap_cost  = 150000000       
 
 # energy storage operational assumptions
-ESS_min_level = 0.20      
-ESS_eta_c = 0.95      
-ESS_eta_d = 0.9       
-ESS_p_var_cost = 5000     
+ESS_min_level    = 0.20      
+ESS_eta_c        = 0.95      
+ESS_eta_d        = 0.9       
+ESS_p_var_cost   = 5000     
 curtailment_cost = 1000     
 
 # create the model
 model = AbstractModel(name = 'energy storage model')
 
 # create model sets
-model.t = Set(initialize = [i for i in range(8760)], ordered=True)    
+model.t    = Set(initialize = [i for i in range(8760)], ordered=True)    
 model.tech = Set(initialize =['s_cap', 'w_cap', 'ESS_power_cap', 'ESS_energy_cap'], ordered=True)  
 
 # parameters
-model.solar = Param(model.t)
-model.wind = Param(model.t)
+model.solar  = Param(model.t)
+model.wind   = Param(model.t)
 model.demand = Param(model.t)
-model.costs = Param(model.tech, initialize={'s_cap' : solar_cap_cost, 'w_cap' : wind_cap_cost, 'ESS_power_cap' : ESS_p_cap_cost, 'ESS_energy_cap' : ESS_e_cap_cost})
+model.costs  = Param(model.tech, initialize={'s_cap' : solar_cap_cost, 'w_cap' : wind_cap_cost, 'ESS_power_cap' : ESS_p_cap_cost, 'ESS_energy_cap' : ESS_e_cap_cost})
 
 ## load data into parameters, solar and wind data are houlry capacity factor data
 data = DataPortal()
@@ -38,11 +38,11 @@ data.load(filename = 'opt_model_data/2022_ERCOT_data.csv', select = ('t', 'wind'
 data.load(filename = 'opt_model_data/2022_ERCOT_data.csv', select = ('t', 'demand'), param = model.demand, index = model.t)
 
 ## define variables
-model.cap = Var(model.tech, domain = NonNegativeReals)
+model.cap     = Var(model.tech, domain = NonNegativeReals)
 model.ESS_SOC = Var(model.t, domain = NonNegativeReals)
-model.ESS_c = Var(model.t, domain = NonNegativeReals)
-model.ESS_d = Var(model.t, domain = NonNegativeReals)
-model.curt = Var(model.t, domain = NonNegativeReals)
+model.ESS_c   = Var(model.t, domain = NonNegativeReals)
+model.ESS_d   = Var(model.t, domain = NonNegativeReals)
+model.curt    = Var(model.t, domain = NonNegativeReals)
 
 # define objective function and contraints
 
@@ -82,7 +82,7 @@ model.SOC_const = Constraint(model.t, rule = SOC_const)
 model = model.create_instance(data)
 
 # solve the model
-opt = SolverFactory('glpk')
+opt    = SolverFactory('glpk')
 status = opt.solve(model) 
 
 # write model outputs to a JSON file
